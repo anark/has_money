@@ -12,24 +12,30 @@ module HasMoney
       attributes.each do |attribute|
         class_eval <<-EOS
           def #{attribute}_in_dollars
-            return #{attribute} if self.class.zero_decimal_currency?(currency)
+            return #{attribute} if zero_decimal_currency?
             self.class.calculate_dollars_from_cents(#{attribute})
           end
 
           def #{attribute}_in_dollars=(dollars)
-            self.#{attribute} = dollars and return if self.class.zero_decimal_currency?(currency)
+            self.#{attribute} = dollars and return if zero_decimal_currency?
             self.#{attribute} = self.class.calculate_cents_from_dollars(dollars)
           end
 
           # Special dollars only formatting (no decimal place and rounded to the nearest dollar)
           def #{attribute}_in_dollars_without_cents
-            return self.#{attribute} if self.class.zero_decimal_currency?(currency)
+            return self.#{attribute} if zero_decimal_currency?
             self.class.calculate_dollars_without_cents_from_cents(#{attribute})
           end
 
           def #{attribute}_in_dollars_without_cents=(dollars)
-            self.#{attribute} = dollars and return if self.class.zero_decimal_currency?(currency)
+            self.#{attribute} = dollars and return if zero_decimal_currency?
             self.#{attribute} = self.class.calculate_cents_from_dollars_without_cents(dollars)
+          end
+
+          def zero_decimal_currency?
+            return false if !respond_to?(currency)
+            return false if currency.nil? || currency == ''
+            self.class.zero_decimal_currencies.include?(currency)
           end
         EOS
       end
@@ -37,10 +43,6 @@ module HasMoney
 
     def zero_decimal_currencies
       ['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'VND', 'VUV', 'XAF', 'XOF', 'XPF']
-    end
-
-    def zero_decimal_currency?(currency)
-      zero_decimal_currency.include?(currency.upcase)
     end
 
     def calculate_dollars_from_cents(cents)
