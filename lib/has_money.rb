@@ -33,7 +33,7 @@ module HasMoney
           end
 
           def zero_decimal_currency?
-            return false if !respond_to?(currency)
+            return false if !respond_to?(:currency)
             return false if currency.nil? || currency == ''
             self.class.zero_decimal_currencies.include?(currency)
           end
